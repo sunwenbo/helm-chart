@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    app: skywalking
+    component: skywalking-job
+    release: skywalking
+  name: skywalking-es-init
+  namespace: erp-skywalking
+spec:
+  backoffLimit: 6
+  completions: 1
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        app: skywalking
+        component: skywalking-job
+        job-name: skywalking-es-init
+        release: skywalking
+      name: skywalking-es-init
+    spec:
+      containers:
+      - env:
+        - name: JAVA_OPTS
+          value: -Xmx2g -Xms2g -Dmode=init
+        - name: SW_STORAGE
+          value: elasticsearch7
+        - name: SW_STORAGE_ES_CLUSTER_NODES
+          value: elasticsearch-master:9200
+        image: apache/skywalking-oap-server:8.4.0-es7
+        imagePullPolicy: IfNotPresent
+        name: oap
+      initContainers:
+      - command:
+        - sh
+        - -c
+        - for i in $(seq 1 60); do nc -z -w3 elasticsearch-master 9200 && exit 0 ||
+          sleep 5; done; exit 1
+        image: busybox:1.30
+        imagePullPolicy: IfNotPresent
+        name: wait-for-elasticsearch
+      restartPolicy: Never

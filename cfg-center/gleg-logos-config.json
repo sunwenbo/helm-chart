@@ -1,0 +1,24 @@
+{
+  "base": {
+      "gleg": {
+          "logosUrl": "/logos-ui"
+      },
+      "loginUrl": "",
+      "logos": {
+          "databases": [],
+          "glegUrl": "/gleg-ui",
+          "graphUrl": "http://dev02.senses-ai.com:6088"
+      }
+  },
+  "dev": {
+      "gleg": {
+          "logosUrl": "http://localhost:8081"
+      },
+      "logos": {
+          "databases": [],
+          "glegUrl": "http://localhost:8080",
+          "graphUrl": "http://dev02.senses-ai.com:6088"
+      }
+  },
+  "prod": {}
+}

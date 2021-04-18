@@ -1,0 +1,28 @@
+affinity: {}
+autoscaling:
+  enabled: false
+  maxReplicas: 100
+  minReplicas: 1
+  targetCPUUtilizationPercentage: 80
+fullnameOverride: ""
+image:
+  pullPolicy: Always
+  repository: image.senses-ai.com/cfg-center
+  tag: latest
+imagePullSecrets: []
+nameOverride: ""
+nodeSelector: {}
+podAnnotations: {}
+podSecurityContext: {}
+replicaCount: 1
+resources: {}
+securityContext: {}
+service:
+  nodePort: 32120
+  port: 2120
+  type: NodePort
+serviceAccount:
+  annotations: {}
+  create: true
+  name: ""
+tolerations: []

@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: skywalking
+    component: ui
+    release: skywalking
+  name: skywalking-ui
+  namespace: erp-skywalking
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: skywalking
+      component: ui
+      release: skywalking
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: skywalking
+        component: ui
+        release: skywalking
+    spec:
+      containers:
+      - env:
+        - name: SW_OAP_ADDRESS
+          value: skywalking-oap:12800
+        - name: security.user.admin.password
+          value: 1qaz2wsx
+        image: apache/skywalking-ui:8.4.0
+        imagePullPolicy: IfNotPresent
+        name: ui
+        ports:
+        - containerPort: 8080
+          name: page
+          protocol: TCP
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: skywalking
+    component: ui
+    release: skywalking
+  name: skywalking-ui
+  namespace: erp-skywalking
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 8080
+    nodePort: 38081
+  selector:
+    app: skywalking
+    component: ui
+    release: skywalking
+  sessionAffinity: None

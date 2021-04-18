@@ -1,0 +1,27 @@
+entrance: [{"name":"gleg-ui","title":"需求协作","icon":"xiezuo.svg","description":"基于敏捷的工作流管理功能, 快速实现需求管理和协作, 并通过业务人员能看懂的业务语言快速构建指标和标签","link":"/gleg-ui/","_blank":true},{"name":"logos-ui","title":"资产管理","icon":"zichan.svg","description":"基于本体建模方法论, 快速构建数据资产, 全程无代码. 并提供强大的数据资产目录管理功能, 实现全域数据资产共享","link":"/logos-ui/","_blank":true},{"name":"graph-ui","title":"自助取数","icon":"zizhuqushu.svg","description":"提供自助式表格查询和数据可视化工具，可从数据库表或数据资产快速产出可视化的数据洞察图表，满足数据分析人员需求。","link":"http://192.168.10.226:32030/login/","_blank":true,"inDevelop":false},{"name":"flink-ui","title":"实时开发","icon":"shishikaifa.svg","description":"基于Flink技术的可视化实时开发工具，通过向导式和编程式的方式实现流批数据的一体化处理","link":"/#/stream","_blank":false},{"name":"stella-ui","title":"API服务","icon":"api.svg","description":"将数据表通过SQL的方式, 快速生成数据API, 快速响应业务需求.","link":"/stella-ui/#/data-services/api-list","_blank":true}]
+streamMenu:
+    0:
+        title: Dashborad
+        url: http://czcb-node1.senses-ai.com:32000/d/-0rFuzoZk/flinkjian-kong-kan-ban?orgId=1&from=now-30m&to=now
+    1:
+        title: Kafka管理
+        url: http://192.168.10.226:30900/
+    2:
+        title: Flink
+        url: http://192.168.10.226:31515/#/overview
+    3:
+        title: 工作台
+        url: http://192.168.10.226:31514/#/
+resourceInfo:
+    0:
+        title: 工作流权限
+        appName: GLEG
+        prefix: srn://gleg/actions/
+    1:
+        title: 数据资产权限
+        appName: LOGOS
+        prefix: srn://logos/actions/
+    2:
+        title: 数据资产域
+        appName: LOGOS
+        prefix: srn://logos/catalogs/
