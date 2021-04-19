@@ -1,0 +1,38 @@
+- hosts: mlk8s
+  user: auxten
+  become: yes
+  vars:
+    # created with:
+    # pip install passlib
+    # python -c "from passlib.hash import sha512_crypt; import getpass; print sha512_crypt.encrypt(getpass.getpass())"
+    # pass is "changepass"
+    password: $6$rounds=656000$Qphjhl2vgKmmQdFK$cyjF7f6ZJjb9Ls0UdJc660jrCm8ipYqseJI/oscGDA2AbJZ3oMi1y8bjwp0QohX7/sMGEw5G4aHjJh.pALSlI0
+
+  tasks:
+    - name: Make sure we have a 'docker' group
+      group:
+        name: docker
+        state: present
+
+    - name: Make sure we have a 'sudo' group
+      group:
+        name: sudo
+        state: present
+
+    - name: Make sure we have a 'wheel' group
+      group:
+        name: wheel
+        state: present
+
+    - name: Add user with sudo, docker
+      user: name={{item}} password={{password}} groups=docker,sudo,wheel append=yes state=present createhome=yes update_password=on_create
+      with_items:
+      - auxten
+      - liyanzhe
+      - tianwen
+      - hanchao
+
+    - name: Add user with sudo, docker
+      user: name={{item}} password={{password}} groups=docker state=present createhome=yes update_password=on_create
+      with_items:
+      - wangjialei

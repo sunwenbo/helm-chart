@@ -1,0 +1,129 @@
+- hosts: develop
+  user: root
+  become: yes
+  vars:
+   python_home: /usr/local/
+   golang_home: /usr/local/
+   maven_home: /usr/local/
+   node_home: /usr/local/
+#   project_directory: /opt/docker/ansible_playbooks
+#  vars:
+#    hostnames:
+#      - host: 192.168.10.10
+#        name: ml-node1.senses-ai.com
+#      - host: 192.168.10.20
+#        name: ml-node2.senses-ai.com
+#      - host: 192.168.10.60
+#        name: ml-node3.senses-ai.com
+  tasks:
+#############disable selinuxd##########
+    - name: Selinux "dsiable"
+      selinux: state=disabled
+#############disable firewalld##########
+    - name: Firewalld "disable"
+      service: name=firewalld state=stopped enabled=no
+############set ulimit value###########
+    - name: Set "ulimit value" 
+      action: shell sed -i  '$ a fs.file-max = 65535'  /etc/sysctl.conf &&  sed -i '$ a* soft nofile 65535\n* hard nofile 65535' /etc/security/limits.conf
+#############set hostname###############
+#    - name: Set hostname
+#      hostname:
+#        name: "{{ item.name }}"
+#      when: item.host == inventory_hostname
+#      loop: "{{ hostnames }}"
+#############set timezone###############
+    - name: Set timezone
+      shell: timedatectl set-timezone Asia/Shanghai
+#############disable swap###############
+    - name: swap disable
+      lineinfile:
+        dest: /etc/fstab
+        regexp: '/dev/mapper/centos-swap swap                    swap    defaults        0 0'
+        line: '#/dev/mapper/centos-swap swap                    swap    defaults        0 0'
+    - name: stop swap
+      action: shell swapoff  -a
+##############install jdk8###############
+    - name: copy jdk to remote servers
+      copy: src=/opt/tool/jdk-8u202-linux-x64.tar.gz dest=/usr/local
+    - name: depressing jdks
+      shell: chdir=/usr/local tar xf jdk-8u202-linux-x64.tar.gz
+    - name: rename jdk dirs
+      shell: rm -rf /usr/local/java8 && mv /usr/local/jdk1.8.0_202 /usr/local/java8
+    - name: add config to profile
+      shell: /bin/echo {{ item }} >> /etc/profile
+      with_items:
+          - export JAVA_HOME=/usr/local/java8
+          - export JRE_HOME=\$JAVA_HOME/jre
+          - export CLASSPATH=.:\$JAVA_HOME/lib/dt.jar:\$JAVA_HOME/lib/tools.jar:\$JRE_HOME/lib:\$CLASSPATH
+          - export PATH=\$JAVA_HOME/bin:\$PATH
+    - name: test
+      shell: source /etc/profile
+    - name: create a symbolic link for java8
+      shell: ln -s /usr/local/java8/bin/java /usr/bin/java
+    - name: test java version
+      shell: java -version
+#################install docker################
+    - name:  docker install
+      shell: sudo yum install -y yum-utils device-mapper-persistent-data lvm2 rsync telnet apr apr-util zip unzip lrzsz
+    - shell: sudo yum install -y docker-ce-19.03.13-3.el7
+    - name: docker config dir
+      shell: sudo mkdir -p /etc/docker
+    - name: file transfer
+      synchronize: src=/etc/docker/daemon.json dest=/etc/docker/daemon.json rsync_opts=-avuz
+      notify:  #上一个任务的运行状态为changed后触发，否则不触发
+      - restart docker
+    - name: install docker-compose
+      shell: sudo curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && sudo chmod +x /usr/local/bin/docker-compose && docker-compose --version
+
+#################install python3.7##############
+    - name: scp python3.7 package
+      copy:
+        src: /root/odyssey-centos-images/centos-jdk1.8/Python-3.7.7.tar.xz
+        dest: "{{ python_home }}"
+    - name: python3.7 env install 
+      shell: yum -y install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel && yum install libffi-devel sudo gcc-c++ python-devel.x86_64 cyrus-sasl-devel.x86_64 -y
+    - name: python3.7 install 
+      shell: cd /usr/local/ &&  tar -xvJf  Python-3.7.7.tar.xz && mkdir /usr/local/python3 && cd Python-3.7.7 && ./configure --prefix=/usr/local/python3 && make && make install && mv /usr/bin/python /usr/bin/python2.7.bak && ln -s /usr/local/python3/bin/python3.7 /usr/bin/python && rm -rf  /usr/bin/pip && ln -s /usr/local/python3/bin/pip3 /usr/bin/pip && sed -i "s#/usr/bin/python#/usr/bin/python2.7#" /usr/bin/yum && sed -i "s#/usr/bin/python#/usr/bin/python2.7#" /usr/libexec/urlgrabber-ext-down && yum install -y deltarpm
+#################install golang-1.15.7##############
+    - name: scp golang-1.15.7 package
+      copy:
+        src: /opt/tool/go1.15.8.linux-amd64.tar.gz
+        dest: "{{ golang_home }}"
+    - name: golang  install 
+      shell: cd /usr/local/ && tar -C /usr/local -xzf go1.15.8.linux-amd64.tar.gz
+    - name: golang env config
+      shell: /bin/echo {{ item }} >> /etc/profile
+      with_items:
+          - export GOROOT=/usr/local/go
+          - export PATH=\$GOROOT/bin:\$PATH
+    - name: golang test
+      shell: source /etc/profile &&  go version
+#################install maven##############
+    - name: scp maven package
+      copy:
+        src: /opt/tool/apache-maven-3.6.3-bin.tar.gz
+        dest: "{{ golang_home }}"
+    - name: install 
+      shell: cd /usr/local/ && tar -C /usr/local -xzf apache-maven-3.6.3-bin.tar.gz && mv apache-maven-3.6.3 maven3
+    - name: maven env config
+      shell: /bin/echo {{ item }} >> /etc/profile
+      with_items:
+          - export MAVEN_HOME=/usr/local/maven3
+          - export PATH=\$MAVEN_HOME/bin:\$PATH
+#################install node##############
+    - name: scp node12 package
+      copy:
+        src: /opt/tool/node-v12.16.3-linux-x64.tar.gz
+        dest: "{{ node_home }}"
+    - name: install 
+      shell: cd /usr/local/ && tar -C /usr/local -xzf node-v12.16.3-linux-x64.tar.gz && mv node-v12.16.3-linux-x64 node
+    - name: node env config
+      shell: /bin/echo {{ item }} >> /etc/profile
+      with_items:
+          - export NODE_HOME=/usr/local/node
+          - export PATH=\$NODE_HOME/bin:\$PATH
+    - name: node test
+      shell: source /etc/profile && node -v
+  handlers:
+    - name: restart docker
+      service: name=docker enabled=yes daemon_reload=yes state=restarted

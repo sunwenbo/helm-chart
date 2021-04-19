@@ -1,0 +1,43 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-tomcat
+  namespace: default
+spec:
+  rules:
+  - host: www.sunwenbo.com
+    http:
+      paths:
+      - path: 
+        backend:
+          serviceName: tomcat
+          servicePort: 8080
+  - host: www.sunwenbo-nginx.com
+    http:
+      paths:
+      - path: 
+        backend:
+          serviceName: nginx-deployment
+          servicePort: 80
+
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-tomcat-tls
+  namespace: default
+  annotations: 
+    kubernets.io/ingress.class: "nginx"
+spec:
+  tls:
+  - hosts:
+    - www.sslsunwenbo.com        #与secret证书的域名需要保持一致
+    secretName: tomcat-secret   #secret证书的名称
+  rules:
+  - host: www.sslsunwenbo.com
+    http:
+      paths:
+      - path: 
+        backend:
+          serviceName: tomcat
+          servicePort: 8080
